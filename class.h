@@ -1,180 +1,363 @@
 #pragma once
-#ifndef _CLASS_H_
-#define _CLASS_H_
 
-static QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");	//ÉùÃ÷Ò»¸öÊı¾İ¿âÊµÀı£¬²¢¹æ¶¨Á¬½Ó·½Ê½
+using namespace std;
+static QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");	//å£°æ˜ä¸€ä¸ªæ•°æ®åº“å®ä¾‹ï¼Œå¹¶è§„å®šè¿æ¥æ–¹å¼
 
-/*¶¨Òå¸¸ÀàContacts*/
+/*å®šä¹‰çˆ¶ç±»Contacts*/
 class Contacts
 {
 public:
-	Contacts(QString Name,QString Gender,QString Birthday,QString Emailaddress,QString Phonenumber)
+	Contacts() {}
+	Contacts(string Name,string Gender,string Birthday,string Phonenumber,string Emailaddress)
 	{
-		this->Name = Name;
-		this->Gender = Gender;
-		this->Birthday = Birthday;
-		this->Phonenumber = Phonenumber;
-		this->Emailaddress = Emailaddress;
-	}	//¹¹ÔìÁªÏµÈË
-	~Contacts();	//Îö¹¹ÁªÏµÈË
-	virtual void Add();		//ĞÂÔöÁªÏµÈË
-	virtual void DeleteContacts(QString Name);	//É¾³ıÁªÏµÈË
-	virtual void Print();	//´òÓ¡È«ÌåÈËÔ±µÄĞÕÃû¡¢³öÉúÈÕÆÚ¡¢µç»°ºÍemailµØÖ·
-	virtual void Edit();	//±à¼­ÁªÏµÈË£¨ĞÕÃûºÍ³öÉúÈÕÆÚ³ıÍâ£©
-	/*void Sort();	//°´ÕÕĞÕÃû»ò³öÉúÈÕÆÚÅÅĞò²¢´òÓ¡
-	void BirthdayFind();	//²éÕÒÉúÈÕ
-	void ContactsFind();	//²éÕÒÁªÏµÈË
-	void CountTheSameMonth();	//¼ÆËãÍ¬Ò»¸öÔÂ³öÉúµÄÈËÊı*/
+		qName = str2QStr(Name);
+		qGender = str2QStr(Gender);
+		qBirthday = str2QStr(Birthday);
+		qPhonenumber = str2QStr(Phonenumber);
+		qEmailaddress = str2QStr(Emailaddress);
+	}	//æ„é€ è”ç³»äºº
+	~Contacts();	//ææ„è”ç³»äºº
+	virtual void Add();	//æ–°å¢è”ç³»äºº
+	virtual void DeleteContacts();	//åˆ é™¤è”ç³»äºº
+	virtual void Print();	//æ‰“å°å…¨ä½“äººå‘˜çš„å§“åã€å‡ºç”Ÿæ—¥æœŸã€ç”µè¯å’Œemailåœ°å€
+	virtual void Edit();	//ç¼–è¾‘è”ç³»äººï¼ˆå§“åå’Œå‡ºç”Ÿæ—¥æœŸé™¤å¤–ï¼‰
+	void Sortbyname();	//æŒ‰ç…§å§“åæ’åºå¹¶æ‰“å°
+	void Sortbybirthday();	//æŒ‰ç…§å‡ºç”Ÿæ—¥æœŸæ’åºå¹¶æ‰“å°
+	void BirthdayFind();	//æŸ¥æ‰¾ç”Ÿæ—¥
+	void ContactsFind(QString desName);	//æŸ¥æ‰¾è”ç³»äºº
+	void CountTheSameMonth(QString month);	//è®¡ç®—åŒä¸€ä¸ªæœˆå‡ºç”Ÿçš„äººæ•°
 	friend void connect_mysql();
 	friend void close_mysql();
+	friend QString str2QStr(string str);
 protected:
-	QString Name, Gender, Birthday, Phonenumber, Emailaddress;
+	QString qName, qGender, qBirthday, qPhonenumber, qEmailaddress;
 };
-/*¸¸ÀàµÄº¯Êı*/
+/*çˆ¶ç±»çš„å‡½æ•°*/
 Contacts::~Contacts() {}
-void Contacts::Add()	//ĞÂÔöÁªÏµÈË
+void Contacts::Add() { return; }
+void Contacts::DeleteContacts() { return; }
+void Contacts::Edit() { return; }
+void Contacts::Print()	//æ‰“å°å…¨ä½“è”ç³»äºº
 {
 	QSqlQuery query(db);
-	QString sql = QObject::tr("INSERT CONTACTS (name,gender,birthday,email,phonenumber) VALUES ('%1','%2','%3','%4','%5')").arg(Name).arg(Gender).arg(Birthday).arg(Emailaddress).arg(Phonenumber);		//µ÷ÓÃÊı¾İ¿âÓï¾äÊµÏÖ²åÈë²Ù×÷
-	query.exec(sql);	//Ö´ĞĞ´ËÊı¾İ¿âÓï¾ä
-}
-void Contacts::DeleteContacts(QString desName)		//É¾³ıÁªÏµÈË
-{
-	QSqlQuery query(db);
-	QString sql = QObject::tr("DELETE FROM STUDENTS WHERE name='%1'").arg(desName);
-	query.exec(sql);
-}
-void Contacts::Edit()
-{}
-void Contacts::Print()
-{
-	QSqlQuery query(db);
-	query.exec("select * from contacts");
-	std::cout <<"ĞÕÃû"<<" | " << "ĞÔ±ğ" << " | " << "³öÉúÈÕÆÚ" << " | " <<"ÓÊÏäµØÖ·"<< " | " << "ÁªÏµ·½Ê½"<<std::endl;
+	query.exec("SELECT name,gender,birthday,phonenumber,emailaddress,school as remarks FROM STUDENTS UNION SELECT name,gender,birthday,phonenumber,emailaddress,company as remarks FROM COLLEAGUES UNION SELECT name,gender,birthday,phonenumber,emailaddress,place as remarks FROM FRIENDS UNION SELECT name,gender,birthday,phonenumber,emailaddress,chenghu as remarks FROM RELATIVES");
+	std::cout <<"å§“å"<<" | " << "æ€§åˆ«" << " | " << "å‡ºç”Ÿæ—¥æœŸ" << " | " <<"é‚®ç®±åœ°å€"<< " | " << "è”ç³»æ–¹å¼"<<" | "<<"å¤‡æ³¨"<<std::endl;
 	while (query.next())
 	{
-		
-		qDebug() << query.value(0).toString()<<"|"<< query.value(1).toString()<<"|"<<query.value(2).toString()<< "|" << query.value(3).toString()<< "|" << query.value(4).toString();
+		qDebug()<<query.value("name").toString()<<"|"<<query.value("gender").toString()<<"|"<<query.value("birthday").toString()<<"|"<< query.value("phonenumber").toString()<<"|"<< query.value("emailaddress").toString()<<"|"<<query.value("remarks").toString();
+	}
+	return;
+}
+void Contacts::Sortbyname()	//æ ¹æ®åå­—æ’åº
+{
+	QSqlQuery query(db);
+	query.exec("SELECT * FROM (SELECT name,gender,birthday,phonenumber,emailaddress,school as remarks FROM STUDENTS UNION SELECT name,gender,birthday,phonenumber,emailaddress,company as remarks FROM COLLEAGUES UNION SELECT name,gender,birthday,phonenumber,emailaddress,place as remarks FROM FRIENDS UNION SELECT name,gender,birthday,phonenumber,emailaddress,chenghu as remarks FROM RELATIVES) as c ORDER BY convert(name using gbk) asc");
+	std::cout << "å§“å" << " | " << "æ€§åˆ«" << " | " << "å‡ºç”Ÿæ—¥æœŸ" << " | " << "é‚®ç®±åœ°å€" << " | " << "è”ç³»æ–¹å¼" << " | " << "å¤‡æ³¨" << std::endl;
+	while (query.next())
+	{
+		qDebug() << query.value("name").toString() << "|" << query.value("gender").toString() <<"|" << query.value("birthday").toString() << "|" << query.value("phonenumber").toString() << "|" << query.value("emailaddress").toString() << "|" << query.value("remarks").toString();
+	}
+
+}
+void Contacts::Sortbybirthday()		//æ ¹æ®å‡ºç”Ÿæ—¥æœŸæ’åº
+{
+	QSqlQuery query(db);
+	query.exec("SELECT * FROM (SELECT name,gender,birthday,phonenumber,emailaddress,school as remarks FROM STUDENTS UNION SELECT name,gender,birthday,phonenumber,emailaddress,company as remarks FROM COLLEAGUES UNION SELECT name,gender,birthday,phonenumber,emailaddress,place as remarks FROM FRIENDS UNION SELECT name,gender,birthday,phonenumber,emailaddress,chenghu as remarks FROM RELATIVES) as c ORDER BY birthday");
+	std::cout << "å§“å" << " | " << "æ€§åˆ«" << " | " << "å‡ºç”Ÿæ—¥æœŸ" << " | " << "é‚®ç®±åœ°å€" << " | " << "è”ç³»æ–¹å¼" << " | " << "å¤‡æ³¨" << std::endl;
+	while (query.next())
+	{
+		qDebug() << query.value("name").toString() << "|" << query.value("gender").toString() << "|" << query.value("birthday").toString() << "|" << query.value("phonenumber").toString() << "|" << query.value("emailaddress").toString() << "|" << query.value("remarks").toString();
 	}
 }
-
-/*¶¨Òå×ÓÀàStudents*/
+void Contacts::ContactsFind(QString desName)
+{
+	bool key = false;
+	QSqlQuery query(db);
+	QString sql=QObject::tr("SELECT name,gender,birthday,phonenumber,emailaddress,school as remarks FROM STUDENTS WHERE name='%1' UNION SELECT name,gender,birthday,phonenumber,emailaddress,company as remarks FROM COLLEAGUES WHERE name='%1' UNION SELECT name,gender,birthday,phonenumber,emailaddress,place as remarks FROM FRIENDS WHERE name='%1' UNION SELECT name,gender,birthday,phonenumber,emailaddress,chenghu as remarks FROM RELATIVES WHERE name='%1'").arg(desName);
+	query.exec(sql);
+		while (query.next())
+	{
+		qDebug() << query.value("name").toString() << "|" << query.value("gender").toString() << "|" << query.value("birthday").toString() << "|" << query.value("phonenumber").toString() << "|" << query.value("emailaddress").toString() << "|" << query.value("remarks").toString();
+		key = true;
+	}
+		if (!key) cout << "NO RESULT!" << endl;
+}
+void Contacts::BirthdayFind()	//æŸ¥æ‰¾ç”Ÿæ—¥å¹¶å‘é€è´ºå¡
+{
+	bool isbirthday = false;
+	QSqlQuery query(db);
+	query.exec("SELECT name FROM STUDENTS WHERE DATE_FORMAT(birthday,'%m%d') BETWEEN DATE_FORMAT(CURDATE(),'%m%d') AND DATE_FORMAT(CURDATE()+INTERVAL 5 DAY,'%m%d') UNION SELECT name FROM COLLEAGUES WHERE DATE_FORMAT(birthday,'%m%d') BETWEEN DATE_FORMAT(CURDATE(),'%m%d') AND DATE_FORMAT(CURDATE()+INTERVAL 5 DAY,'%m%d') UNION SELECT name FROM FRIENDS WHERE DATE_FORMAT(birthday,'%m%d') BETWEEN DATE_FORMAT(CURDATE(),'%m%d') AND DATE_FORMAT(CURDATE()+INTERVAL 5 DAY,'%m%d') UNION SELECT name FROM RELATIVES WHERE DATE_FORMAT(birthday,'%m%d') BETWEEN DATE_FORMAT(CURDATE(),'%m%d') AND DATE_FORMAT(CURDATE()+INTERVAL 5 DAY,'%m%d')");
+	while (query.next())
+	{
+		cout << "æ¶ˆæ¯æç¤º:" << endl;
+		qDebug() << query.value("name").toString()<<":"; 
+		cout << "ç¥ç”Ÿæ—¥å¿«ä¹ï¼Œå¥åº·å¹¸ç¦ã€‚\nç¥è´ºäººå§“å" << endl;
+		isbirthday = true;
+	}
+	if (!isbirthday) cout << "æ¶ˆæ¯æç¤ºï¼šè¿‘æœŸæ— äººç”Ÿæ—¥" << endl;
+}
+void Contacts::CountTheSameMonth(QString month)
+{
+	int count = 0;
+	QSqlQuery query(db);
+	QString sql=QObject::tr("SELECT name,birthday FROM STUDENTS WHERE MONTH(birthday)='%1' UNION SELECT name,birthday FROM COLLEAGUES WHERE MONTH(birthday)='%1' UNION SELECT name,birthday FROM FRIENDS WHERE MONTH(birthday)='%1' UNION SELECT name,birthday FROM RELATIVES WHERE MONTH(birthday)='%1' ").arg(month);
+	query.exec(sql);
+	while (query.next())
+	{
+		count++;
+	}
+	std::cout << "åŒä¸€ä¸ªæœˆå‡ºç”Ÿäººæ•°ä¸ºï¼š"<<count << std::endl;
+}
+/*å®šä¹‰å­ç±»Students*/
 class Students:public Contacts
 {
 public:
-	Students(QString Name, QString Gender, QString Birthday, QString Phonenumber, QString Emailaddress, QString school)
-	:Contacts(Name, Gender, Birthday, Phonenumber, Emailaddress){
-		this->school = school;
-	}	//¹¹ÔìÍ¬Ñ§
-	~Students() {}	//Îö¹¹Í¬Ñ§
-	void Add();		//ĞÂÔöÍ¬Ñ§ÁªÏµÈË
-	//void Edit();	//±à¼­Í¬Ñ§ÁªÏµÈË£¨ĞÕÃûºÍ³öÉúÈÕÆÚ³ıÍâ£©
-	void DeleteContacts(QString Name);	//É¾³ıÍ¬Ñ§ÁªÏµÈË
-	//void Print();	//´òÓ¡È«ÌåÍ¬Ñ§µÄĞÕÃû¡¢³öÉúÈÕÆÚ¡¢µç»°ºÍemailµØÖ·*/
+	Students() {}
+	Students(string Name, string Gender, string Birthday, string Phonenumber, string Emailaddress, string school):Contacts(Name,Gender,Birthday,Phonenumber,Emailaddress)
+	{
+		qschool = str2QStr(school);
+	}
+	~Students() {}	//ææ„åŒå­¦
+	void Add();		//æ–°å¢åŒå­¦è”ç³»äºº
+	void Edit(int x,QString newinfo,QString name);	//ç¼–è¾‘åŒå­¦è”ç³»äººï¼ˆå§“åå’Œå‡ºç”Ÿæ—¥æœŸé™¤å¤–ï¼‰
+	void DeleteContacts(QString Name);	//åˆ é™¤åŒå­¦è”ç³»äºº
+	void Print();	//æ‰“å°å…¨ä½“åŒå­¦çš„å§“åã€å‡ºç”Ÿæ—¥æœŸã€ç”µè¯å’Œemailåœ°å€*/
 private:
-	QString school;
+	QString qschool;
 };
-/*¶¨Òå×ÓÀàStudentsµÄº¯Êı*/
-void Students::Add()	//ĞÂÔöÁªÏµÈË
+/*å®šä¹‰å­ç±»Studentsçš„å‡½æ•°*/
+void Students::Add()	//æ–°å¢è”ç³»äºº
 {
 	QSqlQuery query(db);
-	QString sql = QObject::tr("INSERT STUDENTS (name,school) VALUES ('%1','%2')").arg(Name).arg(school);		//µ÷ÓÃÊı¾İ¿âÓï¾äÊµÏÖ²åÈë²Ù×÷
-	query.exec(sql);	//Ö´ĞĞ´ËÊı¾İ¿âÓï¾ä
+	QString sql = QObject::tr("INSERT STUDENTS (name,gender,birthday,phonenumber,emailaddress,school) VALUES ('%1','%2','%3','%4','%5','%6')").arg(qName).arg(qGender).arg(qBirthday).arg(qPhonenumber).arg(qEmailaddress).arg(qschool);		//è°ƒç”¨æ•°æ®åº“è¯­å¥å®ç°æ’å…¥æ“ä½œ
+	query.exec(sql);	//æ‰§è¡Œæ­¤æ•°æ®åº“è¯­å¥
 }
-void Students::DeleteContacts(QString desName)		//É¾³ıÁªÏµÈË
+void Students::DeleteContacts(QString desName)		//åˆ é™¤è”ç³»äºº
 {
 	QSqlQuery query(db);
 	QString sql = QObject::tr("DELETE FROM STUDENTS WHERE name='%1'").arg(desName);
 	query.exec(sql);
 }
-
-/*¶¨Òå×ÓÀàColleagues*/
+void Students::Print()
+{
+	QSqlQuery query(db);
+	query.exec("SELECT * FROM STUDENTS ");
+	std::cout << "å§“å" << " | " << "æ€§åˆ«" << " | " << "å‡ºç”Ÿæ—¥æœŸ" << " | " << "è”ç³»æ–¹å¼" << " | " << "é‚®ç®±åœ°å€" <<" | "<<"å­¦æ ¡"<< std::endl;
+	while (query.next())
+	{
+		qDebug() << query.value("name").toString() << "|" << query.value("gender").toString() << "|" << query.value("birthday").toString() << "|" << query.value("phonenumber").toString() << "|" << query.value("emailaddress").toString() << "|" << query.value("school").toString();
+	}
+	return;
+}
+void Students::Edit(int x,QString newinfo,QString name)
+{
+	switch (x)
+	{
+	case 1: {
+		QSqlQuery query(db);
+		QString sql = QObject::tr("UPDATE STUDENTS SET PHONENUMBER='%1' WHERE name='%2'").arg(newinfo).arg(name);
+		query.exec(sql);
+	}break;
+	case 2: {
+		QSqlQuery query(db);
+		QString sql = QObject::tr("UPDATE STUDENTS SET EMAILADDRESS='%1' WHERE name='%2'").arg(newinfo).arg(name);
+		query.exec(sql);
+	}break;
+	case 3: {
+		QSqlQuery query(db);
+		QString sql = QObject::tr("UPDATE STUDENTS SET SCHOOL='%1' WHERE name='%2'").arg(newinfo).arg(name);
+		query.exec(sql);
+	}break;
+	default:break;
+	}
+	return;
+}
+/*å®šä¹‰å­ç±»Colleagues*/
 class Colleagues :public Contacts
 {
 public:
-	Colleagues(QString Name, QString Gender, QString Birthday, QString Phonenumber, QString Emailaddress, QString company)
-		:Contacts(Name, Gender, Birthday, Phonenumber, Emailaddress) {
-		this->company = company;
-	}//¹¹ÔìÍ¬Ñ§
-	~Colleagues() {}	//Îö¹¹Í¬ÊÂ
-	void Add();		//ĞÂÔöÍ¬ÊÂÁªÏµÈË
-	//void Edit();	//±à¼­Í¬ÊÂÁªÏµÈË£¨ĞÕÃûºÍ³öÉúÈÕÆÚ³ıÍâ£©
-	void DeleteContacts(QString desName);	//É¾³ıÍ¬ÊÂÁªÏµÈË
-	//void Print();	//´òÓ¡È«ÌåÍ¬ÊÂµÄĞÕÃû¡¢³öÉúÈÕÆÚ¡¢µç»°ºÍemailµØÖ·*/
+	Colleagues() {}
+	Colleagues(string Name, string Gender, string Birthday, string Phonenumber, string Emailaddress, string company) :Contacts(Name, Gender, Birthday, Phonenumber, Emailaddress)
+	{
+		qcompany = str2QStr(company);
+	} //æ„é€ åŒå­¦
+	~Colleagues() {}	//ææ„åŒäº‹
+	void Add();		//æ–°å¢åŒäº‹è”ç³»äºº
+	void Edit(int x,QString newinfo,QString name);	//ç¼–è¾‘åŒäº‹è”ç³»äººï¼ˆå§“åå’Œå‡ºç”Ÿæ—¥æœŸé™¤å¤–ï¼‰
+	void DeleteContacts(QString desName);	//åˆ é™¤åŒäº‹è”ç³»äºº
+	void Print();	//æ‰“å°å…¨ä½“åŒäº‹çš„å§“åã€å‡ºç”Ÿæ—¥æœŸã€ç”µè¯å’Œemailåœ°å€*/
 private:
-	QString company;
+	QString qcompany;
 };
-/*¶¨Òå×ÓÀàColleaguesµÄº¯Êı*/
-void Colleagues::Add()	//ĞÂÔöÁªÏµÈË
+/*å®šä¹‰å­ç±»Colleaguesçš„å‡½æ•°*/
+void Colleagues::Add()	//æ–°å¢è”ç³»äºº
 {
 	QSqlQuery query(db);
-	QString sql = QObject::tr("INSERT COLLEAGUES (name,company) VALUES ('%1','%2')").arg(Name).arg(company);		//µ÷ÓÃÊı¾İ¿âÓï¾äÊµÏÖ²åÈë²Ù×÷
-	query.exec(sql);	//Ö´ĞĞ´ËÊı¾İ¿âÓï¾ä
+	QString sql = QObject::tr("INSERT COLLEAGUES (name,gender,birthday,phonenumber,emailaddress,company) VALUES ('%1','%2','%3','%4','%5','%6')").arg(qName).arg(qGender).arg(qBirthday).arg(qPhonenumber).arg(qEmailaddress).arg(qcompany);		//è°ƒç”¨æ•°æ®åº“è¯­å¥å®ç°æ’å…¥æ“ä½œ
+	query.exec(sql);	//æ‰§è¡Œæ­¤æ•°æ®åº“è¯­å¥
 }
-void Colleagues::DeleteContacts(QString desName)		//É¾³ıÁªÏµÈË
+void Colleagues::DeleteContacts(QString desName)		//åˆ é™¤è”ç³»äºº
 {
 	QSqlQuery query(db);
 	QString sql = QObject::tr("DELETE FROM COLLEAGUES WHERE name='%1'").arg(desName);
 	query.exec(sql);
 }
-
-/*¶¨Òå×ÓÀàFriends*/
+void Colleagues::Print()
+{
+	QSqlQuery query(db);
+	query.exec("SELECT * FROM COLLEAGUES");
+	std::cout << "å§“å" << " | " << "æ€§åˆ«" << " | " << "å‡ºç”Ÿæ—¥æœŸ" << " | " << "è”ç³»æ–¹å¼" << " | " << "é‚®ç®±åœ°å€" << " | " << "å•ä½" << std::endl;
+	while (query.next())
+	{
+		qDebug() << query.value("name").toString() << "|" << query.value("gender").toString() << "|" << query.value("birthday").toString() << "|" << query.value("phonenumber").toString() << "|" << query.value("emailaddress").toString() << "|" << query.value("company").toString();
+	}
+	return;
+}
+void Colleagues::Edit(int x, QString newinfo, QString name)
+{
+	switch (x)
+	{
+	case 1: {
+		QSqlQuery query(db);
+		QString sql = QObject::tr("UPDATE STUDENTS SET PHONENUMBER='%1' WHERE name='%2'").arg(newinfo).arg(name);
+		query.exec(sql);
+	}break;
+	case 2: {
+		QSqlQuery query(db);
+		QString sql = QObject::tr("UPDATE STUDENTS SET EMAILADDRESS='%1' WHERE name='%2'").arg(newinfo).arg(name);
+		query.exec(sql);
+	}break;
+	case 3: {
+		QSqlQuery query(db);
+		QString sql = QObject::tr("UPDATE STUDENTS SET COMPANY='%1' WHERE name='%2'").arg(newinfo).arg(name);
+		query.exec(sql);
+	}break;
+	default:break;
+	}
+}
+/*å®šä¹‰å­ç±»Friends*/
 class Friends :public Contacts
 {
 public:
-	Friends(QString Name, QString Gender, QString Birthday, QString Phonenumber, QString Emailaddress, QString place)
-		:Contacts(Name, Gender, Birthday, Phonenumber, Emailaddress) {
-		this->place = place;
-	}	//¹¹ÔìÍ¬Ñ§
-	~Friends() {};		//Îö¹¹ÅóÓÑ
-	void Add();	//ĞÂÔöÅóÓÑÁªÏµÈË
-	//void Edit();	//±à¼­ÅóÓÑÁªÏµÈË£¨ĞÕÃûºÍ³öÉúÈÕÆÚ³ıÍâ£©
-	void DeleteContacts(QString desName);	//É¾³ıÅóÓÑÁªÏµÈË
-	//void Print();	//´òÓ¡È«ÌåÅóÓÑµÄĞÕÃû¡¢³öÉúÈÕÆÚ¡¢µç»°ºÍemailµØÖ·*/
+	Friends() {}
+	Friends(string Name, string Gender, string Birthday, string Phonenumber, string Emailaddress, string place) :Contacts(Name, Gender, Birthday, Phonenumber, Emailaddress)
+	{
+		qplace = str2QStr(place);
+	}	//æ„é€ åŒå­¦
+	~Friends() {};		//ææ„æœ‹å‹
+	void Add();	//æ–°å¢æœ‹å‹è”ç³»äºº
+	void Edit(int x,QString newinfo,QString name);	//ç¼–è¾‘æœ‹å‹è”ç³»äººï¼ˆå§“åå’Œå‡ºç”Ÿæ—¥æœŸé™¤å¤–ï¼‰
+	void DeleteContacts(QString desName);	//åˆ é™¤æœ‹å‹è”ç³»äºº
+	void Print();	//æ‰“å°å…¨ä½“æœ‹å‹çš„å§“åã€å‡ºç”Ÿæ—¥æœŸã€ç”µè¯å’Œemailåœ°å€*/
 private:
-	QString place;
+	QString qplace;
 };
-/*¶¨Òå×ÓÀàFriendsµÄº¯Êı*/
-void Friends::Add()	//ĞÂÔöÁªÏµÈË
+/*å®šä¹‰å­ç±»Friendsçš„å‡½æ•°*/
+void Friends::Add()	//æ–°å¢è”ç³»äºº
 {
 	QSqlQuery query(db);
-	QString sql = QObject::tr("INSERT FRIENDS (name,place) VALUES ('%1','%2')").arg(Name).arg(place);		//µ÷ÓÃÊı¾İ¿âÓï¾äÊµÏÖ²åÈë²Ù×÷
-	query.exec(sql);	//Ö´ĞĞ´ËÊı¾İ¿âÓï¾ä
+	QString sql = QObject::tr("INSERT FRIENDS (name,gender,birthday,phonenumber,emailaddress,place) VALUES ('%1','%2','%3','%4','%5','%6')").arg(qName).arg(qGender).arg(qBirthday).arg(qPhonenumber).arg(qEmailaddress).arg(qplace);		//è°ƒç”¨æ•°æ®åº“è¯­å¥å®ç°æ’å…¥æ“ä½œ
+	query.exec(sql);	//æ‰§è¡Œæ­¤æ•°æ®åº“è¯­å¥
 }
-void Friends::DeleteContacts(QString desName)		//É¾³ıÁªÏµÈË
+void Friends::DeleteContacts(QString desName)		//åˆ é™¤è”ç³»äºº
 {
 	QSqlQuery query(db);
 	QString sql = QObject::tr("DELETE FROM FRIENDS WHERE name='%1'").arg(desName);
 	query.exec(sql);
 }
-
-/*¶¨Òå×ÓÀàRelatives*/
+void Friends::Print()
+{
+	QSqlQuery query(db);
+	query.exec("SELECT * FROM FRIENDS");
+	std::cout << "å§“å" << " | " << "æ€§åˆ«" << " | " << "å‡ºç”Ÿæ—¥æœŸ" << " | " << "è”ç³»æ–¹å¼" << " | " << "é‚®ç®±åœ°å€" << " | " << "è®¤è¯†åœ°ç‚¹" << std::endl;
+	while (query.next())
+	{
+		qDebug() << query.value("name").toString() << "|" << query.value("gender").toString() << "|" << query.value("birthday").toString() << "|" << query.value("phonenumber").toString() << "|" << query.value("emailaddress").toString() << "|" << query.value("place").toString();
+	}
+	return;
+}
+void Friends::Edit(int x, QString newinfo, QString name)
+{
+	switch (x)
+	{
+	case 1: {
+		QSqlQuery query(db);
+		QString sql = QObject::tr("UPDATE STUDENTS SET PHONENUMBER='%1' WHERE name='%2'").arg(newinfo).arg(name);
+		query.exec(sql);
+	}break;
+	case 2: {
+		QSqlQuery query(db);
+		QString sql = QObject::tr("UPDATE STUDENTS SET EMAILADDRESS='%1' WHERE name='%2'").arg(newinfo).arg(name);
+		query.exec(sql);
+	}break;
+	case 3: {
+		QSqlQuery query(db);
+		QString sql = QObject::tr("UPDATE STUDENTS SET PLACE='%1' WHERE name='%2'").arg(newinfo).arg(name);
+		query.exec(sql);
+	}break;
+	default:break;
+	}
+}
+/*å®šä¹‰å­ç±»Relatives*/
 class Relatives :public Contacts
 {
 public:
-	Relatives(QString Name, QString Gender, QString Birthday, QString Phonenumber, QString Emailaddress, QString chenghu)
-		:Contacts(Name, Gender, Birthday, Phonenumber, Emailaddress) {
-		this->chenghu= chenghu;
-	}	//¹¹ÔìÇ×Æİ
-	~Relatives() {}	//Îö¹¹Ç×Æİ
-	void Add();		//ĞÂÔöÇ×ÆİÁªÏµÈË
-	//void Edit();	//±à¼­Ç×ÆİÁªÏµÈË£¨ĞÕÃûºÍ³öÉúÈÕÆÚ³ıÍâ£©
-	void DeleteContacts(QString desName);	//É¾³ıÇ×ÆİÁªÏµÈË
-	//void Print();	//´òÓ¡È«ÌåÇ×ÆİµÄĞÕÃû¡¢³öÉúÈÕÆÚ¡¢µç»°ºÍemailµØÖ·*/
+	Relatives() {}
+	Relatives(string Name, string Gender, string Birthday, string Phonenumber, string Emailaddress, string chenghu) :Contacts(Name, Gender, Birthday, Phonenumber, Emailaddress)
+	{
+		qchenghu = str2QStr(chenghu);
+	}	//æ„é€ äº²æˆš
+	~Relatives() {}	//ææ„äº²æˆš
+	void Add();		//æ–°å¢äº²æˆšè”ç³»äºº
+	void Edit(int x,QString newinfo,QString name);	//ç¼–è¾‘äº²æˆšè”ç³»äººï¼ˆå§“åå’Œå‡ºç”Ÿæ—¥æœŸé™¤å¤–ï¼‰
+	void DeleteContacts(QString desName);	//åˆ é™¤äº²æˆšè”ç³»äºº
+	void Print();	//æ‰“å°å…¨ä½“äº²æˆšçš„å§“åã€å‡ºç”Ÿæ—¥æœŸã€ç”µè¯å’Œemailåœ°å€*/
 private:
-	QString chenghu;
+	QString qchenghu;
 };
-/*¶¨ÒåRelativesµÄº¯Êı*/
-void Relatives::Add()	//ĞÂÔöÁªÏµÈË
+/*å®šä¹‰Relativesçš„å‡½æ•°*/
+void Relatives::Add()	//æ–°å¢è”ç³»äºº
 {
 	QSqlQuery query(db);
-	QString sql = QObject::tr("INSERT RELATIVES (name,chenghu) VALUES ('%1','%2')").arg(Name).arg(chenghu);		//µ÷ÓÃÊı¾İ¿âÓï¾äÊµÏÖ²åÈë²Ù×÷
-	query.exec(sql);	//Ö´ĞĞ´ËÊı¾İ¿âÓï¾ä
+	QString sql = QObject::tr("INSERT RELATIVES (name,gender,birthday,phonenumber,emailaddress,chenghu) VALUES ('%1','%2','%3','%4','%5','%6')").arg(qName).arg(qGender).arg(qBirthday).arg(qPhonenumber).arg(qEmailaddress).arg(qchenghu);		//è°ƒç”¨æ•°æ®åº“è¯­å¥å®ç°æ’å…¥æ“ä½œ
+	query.exec(sql);	//æ‰§è¡Œæ­¤æ•°æ®åº“è¯­å¥
 }
-void Relatives::DeleteContacts(QString desName)		//É¾³ıÁªÏµÈË
+void Relatives::DeleteContacts(QString desName)		//åˆ é™¤è”ç³»äºº
 {
 	QSqlQuery query(db);
 	QString sql = QObject::tr("DELETE FROM RELATIVES WHERE name='%1'").arg(desName);
 	query.exec(sql);
 }
-#endif
+void Relatives::Print()
+{
+	QSqlQuery query(db);
+	query.exec("SELECT * FROM RELATIVES");
+	std::cout << "å§“å" << " | " << "æ€§åˆ«" << " | " << "å‡ºç”Ÿæ—¥æœŸ" << " | " << "è”ç³»æ–¹å¼" << " | " << "é‚®ç®±åœ°å€" << " | " << "ç§°å‘¼" << std::endl;
+	while (query.next())
+	{
+		qDebug() << query.value("name").toString() << "|" << query.value("gender").toString() << "|" << query.value("birthday").toString() << "|" << query.value("phonenumber").toString() << "|" << query.value("emailaddress").toString() << "|" << query.value("chenghu").toString();
+	}
+	return;
+}
+void Relatives::Edit(int x, QString newinfo, QString name)
+{
+	switch (x)
+	{
+	case 1: {
+		QSqlQuery query(db);
+		QString sql = QObject::tr("UPDATE STUDENTS SET PHONENUMBER='%1' WHERE name='%2'").arg(newinfo).arg(name);
+		query.exec(sql);
+	}break;
+	case 2: {
+		QSqlQuery query(db);
+		QString sql = QObject::tr("UPDATE STUDENTS SET EMAILADDRESS='%1' WHERE name='%2'").arg(newinfo).arg(name);
+		query.exec(sql);
+	}break;
+	case 3: {
+		QSqlQuery query(db);
+		QString sql = QObject::tr("UPDATE STUDENTS SET CHENGHU='%1' WHERE name='%2'").arg(newinfo).arg(name);
+		query.exec(sql);
+	}break;
+	default:break;
+	}
+}
